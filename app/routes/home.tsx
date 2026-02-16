@@ -1,13 +1,31 @@
-import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import type {Route} from "./+types/home";
+import Navbar from "~/componentes/Navbar";
+import {resumes} from "../../constantes";
+import CurriculoCard from "~/componentes/CurriculoCard";
 
 export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
+    return [
+        {title: "Resumind"},
+        {name: "descrição", content: "Feedback inteligente para seu currículo!"},
+    ];
 }
 
 export default function Home() {
-  return <Welcome />;
+    return <main className="bg-[url('/images/bg-main.svg')] bg-cover">
+        <Navbar/>
+        <section className={"secao-main"}>
+            <div className={"pagina-heading"}>
+                <h1>Acompanhe suas candidaturas & avaliações de currículo</h1>
+                <h2>Revise suas candidaturas e confira o feedback fornecido por IA</h2>
+            </div>
+        </section>
+
+        {resumes.length > 0 && (
+            <div className="resumes-section">
+                {resumes.map((resume) => (
+                    <CurriculoCard key={resume.id} resume={resume}/>
+                ))}
+            </div>
+        )}
+    </main>
 }
