@@ -2,6 +2,9 @@ import type {Route} from "./+types/home";
 import Navbar from "~/componentes/Navbar";
 import {resumes} from "../../constantes";
 import CurriculoCard from "~/componentes/CurriculoCard";
+import {usePuterStore} from "~/lib/puter";
+import {useLocation, useNavigate} from "react-router";
+import {useEffect} from "react";
 
 export function meta({}: Route.MetaArgs) {
     return [
@@ -11,7 +14,16 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Home() {
-    return <main className="bg-[url('/images/bg-main.svg')] bg-cover">
+
+    const { auth } = usePuterStore();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if(!auth.isAuthenticated) navigate('/auth?next=/');
+    }, [auth.isAuthenticated])
+
+
+    return <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen">
         <Navbar/>
         <section className={"secao-main"}>
             <div className={"pagina-heading py-16"}>
