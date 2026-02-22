@@ -8,7 +8,7 @@ import {useEffect} from "react";
 
 export function meta({}: Route.MetaArgs) {
     return [
-        {title: "Resumind"},
+        {title: "ScoreWise"},
         {name: "descrição", content: "Feedback inteligente para seu currículo!"},
     ];
 }

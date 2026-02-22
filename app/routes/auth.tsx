@@ -4,7 +4,7 @@ import React, {useEffect} from "react";
 import {useLocation, useNavigate} from "react-router";
 
 export const meta = () => ([
-    {title: 'Resumind | Autenticação'},
+    {title: 'ScoreWise | Autenticação'},
     {name: 'descrição', content: 'Logue na sua conta'},
 ])
 
