@@ -1,14 +1,70 @@
 import {type FormEvent, useState} from "react";
 import Navbar from "~/componentes/Navbar";
 import FileUploader from "~/componentes/FileUploader";
+import {convertPdfToImage} from "~/lib/pdf2img";
+import {generateUUID} from "~/lib/utils";
+import {prepareInstructions} from "../../constantes";
+import {usePuterStore} from "~/lib/puter";
+import {useNavigate} from "react-router";
 
 const Upload: () => React.JSX.Element = () => {
+    const {auth, isLoading, fs, ai, kv} = usePuterStore(); // fs (file storage) e kv (key value storage functions)
+    const navigate = useNavigate();
     const [isProcessing, setIsProcessing] = useState(false);
     const [statusText, setStatusText] = useState('');
     const [file, setFile] = useState<File | null>(null);
 
     const handleFileSelect = (file: File | null): void => {
         setFile(file)
+    }
+
+    const handleAnalyze = async ({companyName, jobTitle, jobDescription, file}: {
+        companyName: string,
+        jobTitle: string,
+        jobDescription: string,
+        file: File
+    }) => {
+        setIsProcessing(true);
+        setStatusText('Fazendo o upload do arquivo...');
+        const uploadedFile = await fs.upload([file]); //fazendo o upload do arquivo para o armazenamento do puter
+        if (!uploadedFile) return setStatusText('Error: Falha no upload o arquivo');
+
+        setStatusText('Convertendo para imagem...');
+        const imageFile = await convertPdfToImage(file);
+        if (!imageFile.file) return setStatusText('Error: Falha ao converter o PDF para imagem'); // caso o arquivo de imagem nao exista
+
+        setStatusText(' Fazendo o upload da imagem...');
+        const uploadedImage = await fs.upload([imageFile.file]);
+        if (!uploadedImage) return setStatusText('Error: Falha ao fazer o upload da imagem'); // falha ao carregar a imagem
+
+        setStatusText('Preparando dados...');
+        const uuid = generateUUID();
+        const data = {
+            id: uuid,
+            resumePath: uploadedFile.path,
+            imagePath: uploadedImage.path,
+            companyName, jobTitle, jobDescription,
+            feedback: '',
+        }
+        await kv.set(`resume:${uuid}`, JSON.stringify(data));
+
+        setStatusText('Analisando...');
+
+        const feedback = await ai.feedback( //função que vem direto do puter e usa funcionalidades de ia próprias
+            uploadedFile.path, //infos adicionais
+            prepareInstructions({jobTitle, jobDescription})
+        )
+        if (!feedback) return setStatusText('Error: Falha em analisar o currículo');
+
+        const feedbackText = typeof feedback.message.content === 'string'
+            ? feedback.message.content // se sim, o feedback é extraido facilmente
+            : feedback.message.content[0].text; //extrai o primeiro feedback
+
+        data.feedback = JSON.parse(feedbackText);
+        await kv.set(`resume:${uuid}`, JSON.stringify(data));
+        setStatusText('Analise completa, redirecionando...');
+        console.log(data);
+        navigate(`/resume/${uuid}`);
     }
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -21,10 +77,9 @@ const Upload: () => React.JSX.Element = () => {
         const jobTitle = formData.get('job-title') as string;
         const jobDescription = formData.get('job-description') as string;
 
-        console.log ({
-            companyName, jobTitle, jobDescription, file
-        })
+        if (!file) return; //verifica se não tem arquivo e sai da function
 
+        handleAnalyze({companyName, jobTitle, jobDescription, file});
     }
 
     return (
