@@ -3,7 +3,7 @@ import Navbar from "~/componentes/Navbar";
 import FileUploader from "~/componentes/FileUploader";
 import {convertPdfToImage} from "~/lib/pdf2img";
 import {generateUUID} from "~/lib/utils";
-import {prepareInstructions} from "../../constantes";
+import {prepareInstructions, AIResponseFormat} from "../../constantes";
 import {usePuterStore} from "~/lib/puter";
 import {useNavigate} from "react-router";
 
@@ -24,47 +24,52 @@ const Upload: () => React.JSX.Element = () => {
         jobDescription: string,
         file: File
     }) => {
-        setIsProcessing(true);
-        setStatusText('Fazendo o upload do arquivo...');
-        const uploadedFile = await fs.upload([file]); //fazendo o upload do arquivo para o armazenamento do puter
-        if (!uploadedFile) return setStatusText('Error: Falha no upload o arquivo');
+        try {
+            setIsProcessing(true);
+            setStatusText('Fazendo o upload do arquivo...');
+            const uploadedFile = await fs.upload([file]); //fazendo o upload do arquivo para o armazenamento do puter
+            if (!uploadedFile) return setStatusText('Error: Falha no upload o arquivo');
 
-        setStatusText('Convertendo para imagem...');
-        const imageFile = await convertPdfToImage(file);
-        if (!imageFile.file) return setStatusText('Error: Falha ao converter o PDF para imagem'); // caso o arquivo de imagem nao exista
+            setStatusText('Convertendo para imagem...');
+            const imageFile = await convertPdfToImage(file);
+            if (!imageFile.file) return setStatusText('Error: Falha ao converter o PDF para imagem'); // caso o arquivo de imagem nao exista
 
-        setStatusText(' Fazendo o upload da imagem...');
-        const uploadedImage = await fs.upload([imageFile.file]);
-        if (!uploadedImage) return setStatusText('Error: Falha ao fazer o upload da imagem'); // falha ao carregar a imagem
+            setStatusText(' Fazendo o upload da imagem...');
+            const uploadedImage = await fs.upload([imageFile.file]);
+            if (!uploadedImage) return setStatusText('Error: Falha ao fazer o upload da imagem'); // falha ao carregar a imagem
 
-        setStatusText('Preparando dados...');
-        const uuid = generateUUID();
-        const data = {
-            id: uuid,
-            resumePath: uploadedFile.path,
-            imagePath: uploadedImage.path,
-            companyName, jobTitle, jobDescription,
-            feedback: '',
+            setStatusText('Preparando dados...');
+            const uuid = generateUUID();
+            const data = {
+                id: uuid,
+                resumePath: uploadedFile.path,
+                imagePath: uploadedImage.path,
+                companyName, jobTitle, jobDescription,
+                feedback: '',
+            }
+            await kv.set(`resume:${uuid}`, JSON.stringify(data));
+
+            setStatusText('Analisando...');
+
+            const feedback = await ai.feedback( //função que vem direto do puter e usa funcionalidades de ia próprias
+                uploadedFile.path, //infos adicionais
+                prepareInstructions({jobTitle, jobDescription, AIResponseFormat})
+            )
+            if (!feedback) return setStatusText('Error: Falha em analisar o currículo');
+
+            const feedbackText = typeof feedback.message.content === 'string'
+                ? feedback.message.content // se sim, o feedback é extraido facilmente
+                : feedback.message.content[0].text; //extrai o primeiro feedback
+
+            data.feedback = JSON.parse(feedbackText);
+            await kv.set(`resume:${uuid}`, JSON.stringify(data));
+            setStatusText('Analise completa, redirecionando...');
+            navigate(`/resume/${uuid}`);
+
+        } catch (err: any) {
+            console.error("Erro:", err);
+            setStatusText('Erro: ' + JSON.stringify(err));
         }
-        await kv.set(`resume:${uuid}`, JSON.stringify(data));
-
-        setStatusText('Analisando...');
-
-        const feedback = await ai.feedback( //função que vem direto do puter e usa funcionalidades de ia próprias
-            uploadedFile.path, //infos adicionais
-            prepareInstructions({jobTitle, jobDescription})
-        )
-        if (!feedback) return setStatusText('Error: Falha em analisar o currículo');
-
-        const feedbackText = typeof feedback.message.content === 'string'
-            ? feedback.message.content // se sim, o feedback é extraido facilmente
-            : feedback.message.content[0].text; //extrai o primeiro feedback
-
-        data.feedback = JSON.parse(feedbackText);
-        await kv.set(`resume:${uuid}`, JSON.stringify(data));
-        setStatusText('Analise completa, redirecionando...');
-        console.log(data);
-        navigate(`/resume/${uuid}`);
     }
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -126,5 +131,3 @@ const Upload: () => React.JSX.Element = () => {
 }
 
 export default Upload
-
-
