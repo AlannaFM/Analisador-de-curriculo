@@ -19,8 +19,7 @@
 
 <h3 align="left">➤ Funcionalidades</h3>
 
-###
 
-<p align="left">‧ Autenticação simples via puter.js.<br>‧ Análise com IA.<br>‧ Pontuação ATS.<br>‧ Feedback personalizado.</p>
+<p align="left">‧ Autenticação simples via puter.js.<br>‧ Análise com IA.<br>‧ Pontuação ATS.<br>‧ Feedback personalizado. <br>‧ Rota "/wipe" para limpar os dados.</p>
 
 ###
