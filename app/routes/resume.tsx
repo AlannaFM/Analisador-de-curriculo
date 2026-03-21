@@ -28,7 +28,7 @@ const Resume: () => React.JSX.Element = () => {
         if(isLoading) return; // aguarda o puter carregar
 
         const loadResume = async () => {
-            const resume = await kv.get(`resume:${id}`);
+            const resume = await kv.get(`curriculo:${id}`);
 
             if(!resume) return; //saí da função caso não tenha acesso ao currículo
 

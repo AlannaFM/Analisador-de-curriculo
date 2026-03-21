@@ -27,10 +27,10 @@ const ATS: React.FC<ATSProps> = ({ score, suggestions }) => {
 
     // determina subtitulo de acordo com score
     const subtitle = score > 69
-        ? 'Great Job!'
+        ? 'Bom trabalho!!'
         : score > 49
-            ? 'Good Start'
-            : 'Needs Improvement';
+            ? 'Bom começo'
+            : 'Necessita Melhoria';
 
     return (
         <div className={`bg-gradient-to-b ${gradientClass} to-white rounded-2xl shadow-md w-full p-6`}>
@@ -46,7 +46,7 @@ const ATS: React.FC<ATSProps> = ({ score, suggestions }) => {
             <div className="mb-6">
                 <h3 className="text-xl font-semibold mb-2">{subtitle}</h3>
                 <p className="text-gray-600 mb-4">
-                    This score represents how well your resume is likely to perform in Applicant Tracking Systems used by employers.
+                    Esse score representa o quão bem seu currículo irá performar no Sistema de Rastreamento de Candidatos usado por recrutadores.
                 </p>
 
                 {/* lista de sugestões */}
