@@ -24,6 +24,8 @@ const Resume: () => React.JSX.Element = () => {
     }, [isLoading])
 
     useEffect(() => {
+        //temporario
+        if(isLoading) return; // aguarda o puter carregar
 
         const loadResume = async () => {
             const resume = await kv.get(`resume:${id}`);
@@ -53,7 +55,7 @@ const Resume: () => React.JSX.Element = () => {
         }
 
         loadResume();
-    }, [id]);
+    }, [id, isLoading]);
 
     return (
         <main className="!pt-0">
