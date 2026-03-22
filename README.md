@@ -21,5 +21,14 @@
 
 
 <p align="left">‧ Autenticação simples via puter.js.<br>‧ Análise com IA.<br>‧ Pontuação ATS.<br>‧ Feedback personalizado. <br>‧ Rota "/wipe" para limpar os dados.</p>
+###
+
+<h2 align="left">🔗 Acesse meu projeto:</h2>
+
+###
+
+[Versão Online](https://scorewise-59olh.puter.site/)
+
+
 
 ###
